@@ -1,0 +1,5 @@
+data/ch.srueegger.bootmate.desktop.in
+data/ch.srueegger.bootmate.metainfo.xml.in
+src/main.rs
+src/application.rs
+src/window.rs

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>ch.srueegger.bootmate</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-only</project_license>
+  <name>Boot Mate</name>
+  <summary>Manage autostart entries</summary>
+  <description>
+    <p>
+      Boot Mate provides a simple and intuitive interface to manage your
+      system's autostart entries. You can view all autostart applications,
+      edit their properties, add startup parameters, or remove them entirely.
+    </p>
+    <p>
+      Perfect for managing which applications start automatically when you
+      log in to your GNOME session.
+    </p>
+  </description>
+  <launchable type="desktop-id">ch.srueegger.bootmate.desktop</launchable>
+  <provides>
+    <binary>bootmate</binary>
+  </provides>
+  <url type="homepage">https://github.com/srueegger/bootmate</url>
+  <url type="bugtracker">https://github.com/srueegger/bootmate/issues</url>
+  <developer_name>Samuel Rüegger</developer_name>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.1.0" date="2025-01-01">
+      <description>
+        <p>Initial release</p>
+        <ul>
+          <li>View all autostart entries</li>
+          <li>Edit autostart entry properties</li>
+          <li>Delete autostart entries</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main window showing autostart entries</caption>
+    </screenshot>
+  </screenshots>
+</component>

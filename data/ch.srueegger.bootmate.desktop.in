@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Boot Mate
+Comment=Manage autostart entries
+Exec=bootmate
+Icon=ch.srueegger.bootmate
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;System;Settings;
+StartupNotify=true
+Keywords=autostart;startup;boot;session;
