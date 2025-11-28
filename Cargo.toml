@@ -6,7 +6,7 @@ license = "GPL-2.0-only"
 authors = ["Samuel Rüegger"]
 
 [dependencies]
-gtk = { version = "0.9", package = "gtk4", features = ["v4_16"] }
+gtk = { version = "0.10", package = "gtk4", features = ["v4_16"] }
 libadwaita = { version = "0.8", features = ["v1_8"] }
 gettext-rs = { version = "0.7", features = ["gettext-system"] }
 glib = "0.20"
