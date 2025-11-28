@@ -1,0 +1,50 @@
+name: bootmate
+base: core24
+version: '0.1.0'
+summary: Manage autostart entries
+description: |
+  Boot Mate provides a simple and intuitive interface to manage your
+  system's autostart entries. You can view all autostart applications,
+  edit their properties, add startup parameters, or remove them entirely.
+
+  Perfect for managing which applications start automatically when you
+  log in to your GNOME session.
+
+grade: stable
+confinement: strict
+
+apps:
+  bootmate:
+    command: usr/local/bin/bootmate
+    extensions: [gnome]
+    plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - gsettings
+      - home
+    environment:
+      XDG_DATA_DIRS: $SNAP/usr/share:$XDG_DATA_DIRS
+
+parts:
+  bootmate:
+    plugin: meson
+    source: .
+    meson-parameters:
+      - --prefix=/usr/local
+      - -Dprofile=release
+    build-packages:
+      - cargo
+      - rustc
+      - libgtk-4-dev
+      - libadwaita-1-dev
+      - libglib2.0-dev
+      - gettext
+      - desktop-file-utils
+    stage-packages:
+      - libgtk-4-1
+      - libadwaita-1-0
+      - libglib2.0-0
+    override-build: |
+      craftctl default

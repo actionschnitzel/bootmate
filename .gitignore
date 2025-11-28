@@ -1,1 +1,38 @@
+# Rust
 /target
+Cargo.lock
+
+# Meson
+/build
+/builddir
+/_build
+
+# GResource compiled files
+*.gresource
+src/*.gresource
+
+# Translation binaries
+*.mo
+*.gmo
+
+# Backup files
+*~
+*.bak
+*.swp
+.*.swp
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts
+*.o
+*.so
+*.a
+
+# Snap
+/parts
+/prime
+/stage
+/*.snap
