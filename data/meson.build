@@ -33,3 +33,12 @@ endif
 # )
 
 subdir('icons')
+
+# Compile resources
+gnome.compile_resources(
+  'bootmate',
+  'bootmate.gresource.xml',
+  gresource_bundle: true,
+  install: true,
+  install_dir: pkgdatadir,
+)
