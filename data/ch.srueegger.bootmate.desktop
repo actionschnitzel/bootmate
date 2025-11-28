@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Boot Mate
+GenericName=Autostart Manager
+Comment=Manage autostart entries
+Exec=bootmate
+Icon=ch.srueegger.bootmate
+Terminal=false
+Categories=System;Settings;
+Keywords=autostart;startup;session;
+StartupNotify=true
