@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::autostart::AutostartEntry;
+use crate::entry_row::EntryRow;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gettextrs::gettext;
@@ -74,7 +76,7 @@ impl BootMateWindow {
         self.add_action_entries([action_refresh]);
     }
 
-    fn load_autostart_entries(&self) {
+    pub fn load_autostart_entries(&self) {
         let imp = self.imp();
 
         // Clear existing entries
@@ -82,12 +84,22 @@ impl BootMateWindow {
             imp.list_box.remove(&child);
         }
 
-        // TODO: Load actual autostart entries
-        // For now, show empty state
-        imp.status_page.set_title(&gettext("No Autostart Entries"));
-        imp.status_page.set_description(Some(&gettext(
-            "No applications are configured to start automatically"
-        )));
-        imp.main_stack.set_visible_child_name("empty");
+        // Load autostart entries
+        let entries = AutostartEntry::load_all();
+
+        if entries.is_empty() {
+            imp.status_page.set_title(&gettext("No Autostart Entries"));
+            imp.status_page.set_description(Some(&gettext(
+                "No applications are configured to start automatically"
+            )));
+            imp.main_stack.set_visible_child_name("empty");
+        } else {
+            // Add entries to list
+            for entry in entries {
+                let row = EntryRow::new(&entry);
+                imp.list_box.append(&row);
+            }
+            imp.main_stack.set_visible_child_name("list");
+        }
     }
 }

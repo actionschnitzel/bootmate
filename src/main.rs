@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 mod application;
+mod autostart;
 mod config;
+mod entry_row;
 mod window;
 
 use application::BootMateApplication;
