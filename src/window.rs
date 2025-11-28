@@ -24,7 +24,13 @@ mod imp {
         #[template_child]
         pub scrolled_window: TemplateChild<gtk::ScrolledWindow>,
         #[template_child]
-        pub list_box: TemplateChild<gtk::ListBox>,
+        pub user_group: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub user_list_box: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub system_group: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub system_list_box: TemplateChild<gtk::ListBox>,
     }
 
     #[glib::object_subclass]
@@ -82,9 +88,12 @@ impl BootMateWindow {
     pub fn load_autostart_entries(&self) {
         let imp = self.imp();
 
-        // Clear existing entries
-        while let Some(child) = imp.list_box.first_child() {
-            imp.list_box.remove(&child);
+        // Clear existing entries from both lists
+        while let Some(child) = imp.user_list_box.first_child() {
+            imp.user_list_box.remove(&child);
+        }
+        while let Some(child) = imp.system_list_box.first_child() {
+            imp.system_list_box.remove(&child);
         }
 
         // Load autostart entries
@@ -97,11 +106,34 @@ impl BootMateWindow {
             )));
             imp.main_stack.set_visible_child_name("empty");
         } else {
-            // Add entries to list
+            // Separate entries into user and system
+            let mut user_entries = Vec::new();
+            let mut system_entries = Vec::new();
+
             for entry in entries {
-                let row = EntryRow::new(&entry);
-                imp.list_box.append(&row);
+                if entry.is_user_entry {
+                    user_entries.push(entry);
+                } else {
+                    system_entries.push(entry);
+                }
             }
+
+            // Add user entries to user list
+            for entry in &user_entries {
+                let row = EntryRow::new(entry);
+                imp.user_list_box.append(&row);
+            }
+
+            // Add system entries to system list
+            for entry in &system_entries {
+                let row = EntryRow::new(entry);
+                imp.system_list_box.append(&row);
+            }
+
+            // Show/hide groups based on whether they have entries
+            imp.user_group.set_visible(!user_entries.is_empty());
+            imp.system_group.set_visible(!system_entries.is_empty());
+
             imp.main_stack.set_visible_child_name("list");
         }
     }
