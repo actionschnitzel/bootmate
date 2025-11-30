@@ -319,6 +319,19 @@ impl BootMateWindow {
                     let user_dir = glib::user_config_dir();
                     let file_path = user_dir.join("autostart").join(&filename);
 
+                    // Check if file already exists
+                    if file_path.exists() {
+                        let error_dialog = adw::AlertDialog::builder()
+                            .heading(gettext("Entry Already Exists"))
+                            .body(gettext("An autostart entry with this name already exists. Please choose a different name."))
+                            .build();
+                        error_dialog.add_response("ok", &gettext("OK"));
+                        error_dialog.set_default_response(Some("ok"));
+                        error_dialog.set_close_response("ok");
+                        error_dialog.present(Some(&window));
+                        return;
+                    }
+
                     // Create new autostart entry
                     let entry = AutostartEntry {
                         name: name.to_string(),
