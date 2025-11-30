@@ -25,13 +25,16 @@
   <developer_name>Samuel Rüegger</developer_name>
   <content_rating type="oars-1.1" />
   <releases>
-    <release version="0.1.0" date="2025-01-01">
+    <release version="1.0.0" date="2025-11-30">
       <description>
-        <p>Initial release</p>
+        <p>First stable release</p>
         <ul>
-          <li>View all autostart entries</li>
-          <li>Edit autostart entry properties</li>
-          <li>Delete autostart entries</li>
+          <li>View all autostart entries from user and system directories</li>
+          <li>Edit autostart entry commands and parameters</li>
+          <li>Delete or disable autostart entries</li>
+          <li>Add new autostart entries from installed applications or custom commands</li>
+          <li>Multi-language support (English and German)</li>
+          <li>Modern GNOME interface with libadwaita</li>
         </ul>
       </description>
     </release>
