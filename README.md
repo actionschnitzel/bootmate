@@ -13,7 +13,35 @@ A modern GNOME application for managing autostart entries, built with Rust and l
 
 ## Screenshots
 
-![Main Window](screenshots/main-window.png)
+### Light Mode
+![Boot Mate - Light Mode](screenshots/bootmate-light.png)
+*Main window showing autostart entries in light mode*
+
+![Boot Mate - Adding Entry (Light)](screenshots/bootmate-light-add.png)
+*Adding a new autostart entry in light mode*
+
+### Dark Mode
+![Boot Mate - Dark Mode](screenshots/bootmate-dark.png)
+*Main window showing autostart entries in dark mode*
+
+![Boot Mate - Adding Entry (Dark)](screenshots/bootmate-dark-add.png)
+*Adding a new autostart entry in dark mode*
+
+## Installation
+
+### Snap Store (Recommended)
+
+Install Boot Mate from the Snap Store:
+
+```bash
+sudo snap install bootmate
+```
+
+The snap package includes all dependencies and works on all major Linux distributions.
+
+### From Source
+
+If you prefer to build from source, see the [Building](#building) section below.
 
 ## Requirements
 
@@ -93,15 +121,20 @@ Or launch from your application menu: **Boot Mate**
 
 ## Building a Snap
 
-To build a snap package for distribution via the Snap Store:
+To build a snap package for local testing or distribution:
 
 ```bash
 # Install snapcraft
 sudo snap install snapcraft --classic
 
-# Build the snap (snapcraft.yaml to be added)
+# Build the snap
 snapcraft
+
+# Install the locally built snap
+sudo snap install --dangerous bootmate_1.0.0_amd64.snap
 ```
+
+For publishing to the Snap Store, see [Publishing](#publishing-to-snap-store).
 
 ## Project Structure
 
@@ -127,6 +160,37 @@ bootmate/
 └── LICENSE                # GPLv2 license
 
 ```
+
+## Publishing to Snap Store
+
+To publish Boot Mate to the Snap Store:
+
+1. **Register the snap name** (first time only):
+   ```bash
+   snapcraft login
+   snapcraft register bootmate
+   ```
+
+2. **Build the snap**:
+   ```bash
+   snapcraft
+   ```
+
+3. **Upload to the store**:
+   ```bash
+   snapcraft upload bootmate_1.0.0_amd64.snap
+   ```
+
+4. **Release to a channel**:
+   ```bash
+   # Release to stable channel
+   snapcraft release bootmate <revision> stable
+
+   # Or release to edge for testing
+   snapcraft release bootmate <revision> edge
+   ```
+
+For more information, see the [Snapcraft documentation](https://snapcraft.io/docs/releasing-your-app).
 
 ## How It Works
 

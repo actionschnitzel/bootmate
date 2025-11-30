@@ -1,6 +1,6 @@
 name: bootmate
 base: core24
-version: '0.1.0'
+version: '1.0.0'
 summary: Manage autostart entries
 description: |
   Boot Mate provides a simple and intuitive interface to manage your
@@ -10,8 +10,20 @@ description: |
   Perfect for managing which applications start automatically when you
   log in to your GNOME session.
 
+  Features:
+  - View all autostart entries from user and system directories
+  - Edit autostart entry commands and parameters
+  - Delete or disable autostart entries
+  - Add new autostart entries from installed applications
+  - Multi-language support (English and German)
+  - Modern GNOME interface with libadwaita
+
 grade: stable
 confinement: strict
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
 
 apps:
   bootmate:
@@ -24,8 +36,25 @@ apps:
       - x11
       - gsettings
       - home
+      - system-autostart-read
+      - desktop-applications-read
     environment:
-      XDG_DATA_DIRS: $SNAP/usr/share:$XDG_DATA_DIRS
+      XDG_DATA_DIRS: $SNAP/usr/share:$SNAP/usr/local/share:$XDG_DATA_DIRS
+
+plugs:
+  # Read-only access to system autostart directories
+  system-autostart-read:
+    interface: system-files
+    read:
+      - /etc/xdg/autostart
+      - /usr/share/gnome/autostart
+
+  # Read-only access to installed applications
+  desktop-applications-read:
+    interface: system-files
+    read:
+      - /usr/share/applications
+      - /var/lib/snapd/desktop/applications
 
 parts:
   bootmate:
@@ -42,9 +71,12 @@ parts:
       - libglib2.0-dev
       - gettext
       - desktop-file-utils
+      - pkg-config
     stage-packages:
       - libgtk-4-1
       - libadwaita-1-0
       - libglib2.0-0
     override-build: |
       craftctl default
+      # Ensure proper permissions
+      chmod +x $CRAFT_PART_INSTALL/usr/local/bin/bootmate || true
