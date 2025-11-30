@@ -8,27 +8,20 @@ on:
 jobs:
   build-snap:
     name: Build Snap Package
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:25.10
+    runs-on: ubuntu-24.04  # Snap uses core24 base, so build on 24.04
 
     steps:
-      - name: Install git and basic tools
-        run: |
-          apt-get update
-          apt-get install -y git curl sudo
-
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install snapcraft
         run: |
-          apt-get install -y snapd
-          snap install snapcraft --classic
+          sudo snap install snapcraft --classic
 
       - name: Install ALL build dependencies
         run: |
-          apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             build-essential \
             gcc \
             make \
@@ -72,13 +65,13 @@ jobs:
     name: Build DEB Package
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:25.10
+      image: ubuntu:25.10  # DEB needs GTK 4.20 from Ubuntu 25.10
 
     steps:
       - name: Install git and basic tools
         run: |
           apt-get update
-          apt-get install -y git curl
+          apt-get install -y git curl ca-certificates
 
       - name: Checkout code
         uses: actions/checkout@v4
