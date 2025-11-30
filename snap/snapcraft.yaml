@@ -72,15 +72,7 @@ parts:
     meson-parameters:
       - --prefix=/usr/local
       - -Dprofile=release
-    build-packages:
-      - cargo
-      - rustc
-      - libgtk-4-dev
-      - libadwaita-1-dev
-      - libglib2.0-dev
-      - gettext
-      - desktop-file-utils
-      - pkg-config
+    # build-packages removed - installed manually before snapcraft in CI
     stage-packages:
       - libgtk-4-1
       - libadwaita-1-0
