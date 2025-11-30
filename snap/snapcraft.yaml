@@ -28,7 +28,6 @@ platforms:
 apps:
   bootmate:
     command: usr/local/bin/bootmate
-    extensions: [gnome]
     plugs:
       - desktop
       - desktop-legacy
@@ -41,6 +40,8 @@ apps:
       - desktop-applications-read
     environment:
       XDG_DATA_DIRS: $SNAP/usr/share:$SNAP/usr/local/share:$XDG_DATA_DIRS
+      GTK_USE_PORTAL: 1
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
 
 plugs:
   # Access to ~/.config/autostart for user autostart entries
@@ -77,6 +78,10 @@ parts:
       - libgtk-4-1
       - libadwaita-1-0
       - libglib2.0-0
+      - libglib2.0-bin
+      - librsvg2-common
+      - gsettings-desktop-schemas
+      - libcanberra-gtk3-module
     override-build: |
       craftctl default
       # Ensure proper permissions
