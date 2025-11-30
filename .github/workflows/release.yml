@@ -7,12 +7,21 @@ on:
 
 jobs:
   build-snap:
-    name: Build Snap Package
-    runs-on: ubuntu-24.04  # Snap uses core24 base, so build on 24.04
+    name: Build Snap Package (${{ matrix.arch }})
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up QEMU for ARM64
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
 
       - name: Install snapcraft
         run: |
@@ -44,12 +53,23 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+          # Add ARM64 target if building for ARM64
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            $HOME/.cargo/bin/rustup target add aarch64-unknown-linux-gnu
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+          fi
+
           $HOME/.cargo/bin/rustc -V
           $HOME/.cargo/bin/cargo -V
 
       - name: Build snap
         run: |
-          snapcraft pack --destructive-mode
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            snapcraft pack --destructive-mode --build-for=arm64
+          else
+            snapcraft pack --destructive-mode
+          fi
 
       - name: Get version from tag
         id: get_version
@@ -69,18 +89,21 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./${{ steps.get_version.outputs.snap_file }}
-          asset_name: bootmate_${{ steps.get_version.outputs.version }}_amd64.snap
+          asset_name: bootmate_${{ steps.get_version.outputs.version }}_${{ matrix.arch }}.snap
           asset_content_type: application/octet-stream
 
       - name: Upload snap artifact
         uses: actions/upload-artifact@v4
         with:
-          name: snap-package
+          name: snap-package-${{ matrix.arch }}
           path: '*.snap'
 
   build-deb:
-    name: Build DEB Package
+    name: Build DEB Package (${{ matrix.arch }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
     container:
       image: ubuntu:25.10  # DEB needs GTK 4.20 from Ubuntu 25.10
 
@@ -116,12 +139,23 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+          # Add ARM64 target if cross-compiling
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            $HOME/.cargo/bin/rustup target add aarch64-unknown-linux-gnu
+          fi
+
           $HOME/.cargo/bin/rustc -V
           $HOME/.cargo/bin/cargo -V
 
+      - name: Install cross-compilation tools
+        if: matrix.arch == 'arm64'
+        run: |
+          apt-get install -y gcc-aarch64-linux-gnu
+
       - name: Install cargo-deb
         run: |
-          cargo install cargo-deb
+          $HOME/.cargo/bin/cargo install cargo-deb
 
       - name: Build with meson (for resources)
         run: |
@@ -130,7 +164,15 @@ jobs:
 
       - name: Build DEB package
         run: |
-          cargo deb
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            # Set up cross-compilation environment for ARM64
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+            export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+            export PKG_CONFIG_ALLOW_CROSS=1
+            $HOME/.cargo/bin/cargo deb --target=aarch64-unknown-linux-gnu
+          else
+            $HOME/.cargo/bin/cargo deb
+          fi
 
       - name: Get version from tag
         id: get_version
@@ -138,9 +180,16 @@ jobs:
           # Extract version from tag (e.g., v1.1.0 -> 1.1.0)
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          # Find the actual deb file
-          DEB_FILE=$(ls target/debian/*.deb | xargs -n 1 basename)
+          # Find the actual deb file (might be in target/debian or target/aarch64-unknown-linux-gnu/debian)
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            DEB_FILE=$(ls target/aarch64-unknown-linux-gnu/debian/*.deb 2>/dev/null | xargs -n 1 basename || ls target/debian/*.deb | xargs -n 1 basename)
+            DEB_PATH=$(ls target/aarch64-unknown-linux-gnu/debian/*.deb 2>/dev/null || ls target/debian/*.deb)
+          else
+            DEB_FILE=$(ls target/debian/*.deb | xargs -n 1 basename)
+            DEB_PATH=$(ls target/debian/*.deb)
+          fi
           echo "deb_file=$DEB_FILE" >> $GITHUB_OUTPUT
+          echo "deb_path=$DEB_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload deb to release
         if: github.event_name == 'release'
@@ -149,12 +198,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./target/debian/${{ steps.get_version.outputs.deb_file }}
-          asset_name: bootmate_${{ steps.get_version.outputs.version }}_amd64.deb
+          asset_path: ${{ steps.get_version.outputs.deb_path }}
+          asset_name: bootmate_${{ steps.get_version.outputs.version }}_${{ matrix.arch }}.deb
           asset_content_type: application/vnd.debian.binary-package
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deb-package
-          path: target/debian/*.deb
+          name: deb-package-${{ matrix.arch }}
+          path: target/**/debian/*.deb
