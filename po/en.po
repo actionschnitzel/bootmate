@@ -17,10 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: data/ch.srueegger.bootmate.desktop.in:3
+#: data/ch.srueegger.bootmate.metainfo.xml.in:7
+#: data/ui/window.ui:6
+#: src/application.rs
 msgid "Boot Mate"
 msgstr "Boot Mate"
 
 #: data/ch.srueegger.bootmate.desktop.in:4
+#: data/ch.srueegger.bootmate.metainfo.xml.in:8
+#: src/application.rs
 msgid "Manage autostart entries"
 msgstr "Manage autostart entries"
 
@@ -28,19 +33,17 @@ msgstr "Manage autostart entries"
 msgid "autostart;startup;boot;session;"
 msgstr "autostart;startup;boot;session;"
 
-#: data/ui/window.ui:6
-msgid "Boot Mate"
-msgstr "Boot Mate"
-
 #: data/ui/window.ui:14
 msgid "Main Menu"
 msgstr "Main Menu"
 
 #: data/ui/window.ui:27
+#: src/window.rs
 msgid "No Autostart Entries"
 msgstr "No Autostart Entries"
 
 #: data/ui/window.ui:28
+#: src/window.rs
 msgid "No applications are configured to start automatically"
 msgstr "No applications are configured to start automatically"
 
@@ -65,6 +68,7 @@ msgid "Edit Autostart Entry"
 msgstr "Edit Autostart Entry"
 
 #: src/entry_row.rs
+#: src/window.rs
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -73,6 +77,7 @@ msgid "Save"
 msgstr "Save"
 
 #: src/entry_row.rs
+#: src/window.rs
 msgid "Command"
 msgstr "Command"
 
@@ -84,18 +89,46 @@ msgstr "Delete Autostart Entry?"
 msgid "This action cannot be undone."
 msgstr "This action cannot be undone."
 
-#: src/application.rs
-msgid "Boot Mate"
-msgstr "Boot Mate"
-
-#: src/application.rs
-msgid "Manage autostart entries"
-msgstr "Manage autostart entries"
+#: src/window.rs
+msgid "Add Autostart Entry"
+msgstr "Add Autostart Entry"
 
 #: src/window.rs
-msgid "No Autostart Entries"
-msgstr "No Autostart Entries"
+msgid "Add"
+msgstr "Add"
 
 #: src/window.rs
-msgid "No applications are configured to start automatically"
-msgstr "No applications are configured to start automatically"
+msgid "Name"
+msgstr "Name"
+
+#: src/window.rs
+msgid "Entry Type"
+msgstr "Entry Type"
+
+#: src/window.rs
+msgid "Select from installed applications"
+msgstr "Select from installed applications"
+
+#: src/window.rs
+msgid "Enter custom command"
+msgstr "Enter custom command"
+
+#: src/window.rs
+msgid "Application"
+msgstr "Application"
+
+#: src/window.rs
+msgid "Browse..."
+msgstr "Browse..."
+
+#: src/window.rs
+msgid "Entry Already Exists"
+msgstr "Entry Already Exists"
+
+#: src/window.rs
+msgid "An autostart entry with this name already exists. Please choose a different name."
+msgstr "An autostart entry with this name already exists. Please choose a different name."
+
+#: src/window.rs
+msgid "OK"
+msgstr "OK"
