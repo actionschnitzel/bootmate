@@ -371,9 +371,10 @@ impl BootMateWindow {
             || !access.usr_share_applications;
 
         if missing_permissions && access.sandbox_type != SandboxType::None {
+            let header = gettext("Limited access detected. Run these commands to enable full functionality:");
             let message = match access.sandbox_type {
                 SandboxType::Snap => {
-                    let mut msg = String::from("Limited access to autostart directories. To enable full functionality, run:\n");
+                    let mut msg = format!("{}\n", header);
 
                     if !access.user_autostart {
                         msg.push_str("sudo snap connect bootmate:dot-config-autostart\n");
@@ -387,7 +388,7 @@ impl BootMateWindow {
                     msg
                 },
                 SandboxType::Flatpak => {
-                    let mut msg = String::from("Limited access to autostart directories. To enable full functionality, run:\n");
+                    let mut msg = format!("{}\n", header);
 
                     if !access.user_autostart {
                         msg.push_str("flatpak override --user ch.srueegger.bootmate --filesystem=xdg-config/autostart\n");

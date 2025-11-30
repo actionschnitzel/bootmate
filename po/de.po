@@ -148,3 +148,7 @@ msgstr "System-Autostart"
 #: data/ui/window.ui:124
 msgid "System-wide applications that start automatically"
 msgstr "Systemweite Anwendungen, die automatisch starten"
+
+#: src/window.rs
+msgid "Limited access detected. Run these commands to enable full functionality:"
+msgstr "Eingeschränkter Zugriff erkannt. Führen Sie diese Befehle aus, um die volle Funktionalität zu aktivieren:"
