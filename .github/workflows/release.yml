@@ -25,8 +25,6 @@ jobs:
             build-essential \
             gcc \
             make \
-            cargo \
-            rustc \
             meson \
             ninja-build \
             pkg-config \
@@ -38,7 +36,16 @@ jobs:
             gettext \
             desktop-file-utils \
             appstream \
-            libxml2-utils
+            libxml2-utils \
+            curl \
+            ca-certificates
+
+      - name: Install Rust via rustup (>=1.85)
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          $HOME/.cargo/bin/rustc -V
+          $HOME/.cargo/bin/cargo -V
 
       - name: Build snap
         run: |
@@ -92,8 +99,6 @@ jobs:
             build-essential \
             gcc \
             make \
-            cargo \
-            rustc \
             meson \
             ninja-build \
             pkg-config \
@@ -106,6 +111,13 @@ jobs:
             desktop-file-utils \
             appstream \
             libxml2-utils
+
+      - name: Install Rust via rustup (>=1.85)
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          $HOME/.cargo/bin/rustc -V
+          $HOME/.cargo/bin/cargo -V
 
       - name: Install cargo-deb
         run: |
