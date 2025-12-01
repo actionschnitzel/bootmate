@@ -62,8 +62,8 @@ parts:
       - --prefix=/usr/local
       - -Dprofile=release
     build-packages:
-      - rustc
-      - cargo
+      - curl
+      - gcc
       - meson
       - ninja-build
       - pkg-config
@@ -80,3 +80,13 @@ parts:
       - libglib2.0-bin
       - librsvg2-common
       - gsettings-desktop-schemas
+    override-build: |
+      # Install Rust via rustup
+      if ! command -v rustc >/dev/null 2>&1; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+        source "$HOME/.cargo/env"
+      fi
+      export PATH="$HOME/.cargo/bin:$PATH"
+
+      # Run meson build
+      craftctl default
