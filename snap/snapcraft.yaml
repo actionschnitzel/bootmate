@@ -72,6 +72,7 @@ parts:
       - libglib2.0-dev
       - libglib2.0-bin
       - gettext
+      - desktop-file-utils
     stage-packages:
       - libgtk-4-1
       - libadwaita-1-0
