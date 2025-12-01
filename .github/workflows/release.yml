@@ -180,6 +180,15 @@ jobs:
 
       - name: Build with meson (for resources)
         run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            # Set up cross-compilation environment for ARM64
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+            export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+            export PKG_CONFIG_ALLOW_CROSS=1
+            export PKG_CONFIG_PATH=""
+            export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+            export CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu
+          fi
           meson setup build-release --prefix=/usr -Dprofile=release
           meson compile -C build-release
 

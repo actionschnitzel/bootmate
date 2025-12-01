@@ -73,7 +73,13 @@ parts:
     meson-parameters:
       - --prefix=/usr/local
       - -Dprofile=release
-    # build-packages removed - installed manually before snapcraft in CI
+    build-packages:
+      - curl
+      - gcc
+      - pkg-config
+      - libgtk-4-dev
+      - libadwaita-1-dev
+      - libglib2.0-dev
     stage-packages:
       - libgtk-4-1
       - libadwaita-1-0
@@ -83,6 +89,22 @@ parts:
       - gsettings-desktop-schemas
       - libcanberra-gtk3-module
     override-build: |
+      # Install Rust via rustup
+      if [ ! -d "$HOME/.cargo" ]; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0 --profile minimal
+      fi
+
+      # Add Rust to PATH
+      export PATH="$HOME/.cargo/bin:$PATH"
+
+      # Add target architecture for cross-compilation if needed
+      SNAPCRAFT_TARGET_ARCH="${SNAPCRAFT_TARGET_ARCH:-$(dpkg --print-architecture)}"
+      if [ "$SNAPCRAFT_TARGET_ARCH" = "arm64" ]; then
+        rustup target add aarch64-unknown-linux-gnu
+      fi
+
+      # Run default meson build
       craftctl default
+
       # Ensure proper permissions
       chmod +x $CRAFT_PART_INSTALL/usr/local/bin/bootmate || true
