@@ -135,6 +135,26 @@ jobs:
             appstream \
             libxml2-utils
 
+      - name: Enable arm64 arch and install arm64 GTK stack (for cross compiling)
+        if: matrix.arch == 'arm64'
+        run: |
+          dpkg --add-architecture arm64
+          apt-get update
+          # Cross toolchain for linking
+          apt-get install -y gcc-aarch64-linux-gnu
+          # Install the target (arm64) development libraries so the linker can find them
+          # Keep this list minimal but sufficient for gtk4/libadwaita stack used by gtk-rs
+          apt-get install -y \
+            libgtk-4-dev:arm64 \
+            libadwaita-1-dev:arm64 \
+            libglib2.0-dev:arm64 \
+            libcairo2-dev:arm64 \
+            libgdk-pixbuf-2.0-dev:arm64 \
+            libpango1.0-dev:arm64 \
+            libgraphene-1.0-dev:arm64 \
+            libharfbuzz-dev:arm64 \
+            libvulkan-dev:arm64
+
       - name: Install Rust via rustup (>=1.85)
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
@@ -151,7 +171,8 @@ jobs:
       - name: Install cross-compilation tools
         if: matrix.arch == 'arm64'
         run: |
-          apt-get install -y gcc-aarch64-linux-gnu
+          # Already installed in previous step; keep for safety in case of changes
+          apt-get install -y gcc-aarch64-linux-gnu || true
 
       - name: Install cargo-deb
         run: |
@@ -169,6 +190,9 @@ jobs:
             export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
             export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
             export PKG_CONFIG_ALLOW_CROSS=1
+            # Ensure pkg-config resolves ARM64 .pc files from multiarch locations
+            export PKG_CONFIG_PATH=""
+            export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
             $HOME/.cargo/bin/cargo deb --target=aarch64-unknown-linux-gnu
           else
             $HOME/.cargo/bin/cargo deb
