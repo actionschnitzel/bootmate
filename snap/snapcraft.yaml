@@ -10,20 +10,11 @@ description: |
   Perfect for managing which applications start automatically when you
   log in to your GNOME session.
 
-  Features:
-  - View all autostart entries from user and system directories
-  - Edit autostart entry commands and parameters
-  - Delete or disable autostart entries
-  - Add new autostart entries from installed applications
-  - Multi-language support (English and German)
-  - Modern GNOME interface with libadwaita
-
 grade: stable
 confinement: strict
 
 platforms:
   amd64:
-  arm64:
 
 apps:
   bootmate:
@@ -40,11 +31,10 @@ apps:
       - desktop-applications-read
     environment:
       XDG_DATA_DIRS: $SNAP/usr/share:$SNAP/usr/local/share:$XDG_DATA_DIRS
-      GTK_USE_PORTAL: 1
+      GTK_USE_PORTAL: "1"
       GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
 
 plugs:
-  # Access to ~/.config/autostart for user autostart entries
   dot-config-autostart:
     interface: personal-files
     write:
@@ -52,14 +42,12 @@ plugs:
     read:
       - $HOME/.config/autostart
 
-  # Read-only access to system autostart directories
   system-autostart-read:
     interface: system-files
     read:
       - /etc/xdg/autostart
       - /usr/share/gnome/autostart
 
-  # Read-only access to installed applications
   desktop-applications-read:
     interface: system-files
     read:
@@ -74,12 +62,12 @@ parts:
       - --prefix=/usr/local
       - -Dprofile=release
     build-packages:
-      - curl
-      - gcc
-      - pkg-config
+      - rustc
+      - cargo
       - libgtk-4-dev
       - libadwaita-1-dev
       - libglib2.0-dev
+      - gettext
     stage-packages:
       - libgtk-4-1
       - libadwaita-1-0
@@ -87,29 +75,3 @@ parts:
       - libglib2.0-bin
       - librsvg2-common
       - gsettings-desktop-schemas
-      - libcanberra-gtk3-module
-    override-build: |
-      # Install Rust via rustup if not already available
-      if ! command -v rustc &> /dev/null; then
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0 --profile minimal
-        source "$HOME/.cargo/env"
-      fi
-
-      # Ensure Rust is in PATH
-      export PATH="$HOME/.cargo/bin:$PATH"
-
-      # Verify Rust is available
-      rustc --version
-      cargo --version
-
-      # Add target architecture for cross-compilation if needed
-      SNAPCRAFT_TARGET_ARCH="${SNAPCRAFT_TARGET_ARCH:-$(dpkg --print-architecture)}"
-      if [ "$SNAPCRAFT_TARGET_ARCH" = "arm64" ]; then
-        rustup target add aarch64-unknown-linux-gnu
-      fi
-
-      # Run default meson build
-      craftctl default
-
-      # Ensure proper permissions
-      chmod +x $CRAFT_PART_INSTALL/usr/local/bin/bootmate || true

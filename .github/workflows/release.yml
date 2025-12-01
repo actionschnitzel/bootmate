@@ -3,213 +3,64 @@ name: Build and Release
 on:
   release:
     types: [published]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
-  build-snap:
-    name: Build Snap Package (${{ matrix.arch }})
+  build-deb-amd64:
+    name: Build DEB (AMD64)
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up QEMU for ARM64
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Install snapcraft
-        run: |
-          sudo snap install snapcraft --classic
-
-      - name: Install snapcraft build dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          # Snapcraft will install Rust and other build dependencies itself
-          # Only install ARM64 cross-compiler if needed (not available in snapcraft build packages)
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-          fi
-
-      - name: Build snap
-        run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            snapcraft pack --destructive-mode --build-for=arm64
-          else
-            snapcraft pack --destructive-mode
-          fi
-
-      - name: Get version from tag
-        id: get_version
-        run: |
-          # Extract version from tag (e.g., v1.1.0 -> 1.1.0)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          # Find the actual snap file
-          SNAP_FILE=$(ls *.snap)
-          echo "snap_file=$SNAP_FILE" >> $GITHUB_OUTPUT
-
-      - name: Upload snap to release
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ steps.get_version.outputs.snap_file }}
-          asset_name: bootmate_${{ steps.get_version.outputs.version }}_${{ matrix.arch }}.snap
-          asset_content_type: application/octet-stream
-
-      - name: Upload snap artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: snap-package-${{ matrix.arch }}
-          path: '*.snap'
-
-  build-deb:
-    name: Build DEB Package (${{ matrix.arch }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
-    container:
-      image: ubuntu:24.04  # Use Ubuntu 24.04 LTS with GTK 4.12+ and libadwaita 1.4+
-
-    steps:
-      - name: Install git and basic tools
-        run: |
-          apt-get update
-          apt-get install -y git curl ca-certificates
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install ALL build dependencies
-        run: |
-          apt-get install -y \
+          sudo apt-get install -y \
             build-essential \
-            gcc \
-            make \
             meson \
-            ninja-build \
-            pkg-config \
             libgtk-4-dev \
             libadwaita-1-dev \
             libglib2.0-dev \
-            glib-networking \
-            libglib2.0-bin \
             gettext \
             desktop-file-utils \
-            appstream \
-            libxml2-utils
+            appstream
 
-      - name: Enable arm64 arch and install arm64 GTK stack (for cross compiling)
-        if: matrix.arch == 'arm64'
-        run: |
-          dpkg --add-architecture arm64
-          apt-get update
-          # Cross toolchain for linking
-          apt-get install -y gcc-aarch64-linux-gnu
-          # Install the target (arm64) development libraries so the linker can find them
-          # Keep this list minimal but sufficient for gtk4/libadwaita stack used by gtk-rs
-          apt-get install -y \
-            libgtk-4-dev:arm64 \
-            libadwaita-1-dev:arm64 \
-            libglib2.0-dev:arm64 \
-            libcairo2-dev:arm64 \
-            libgdk-pixbuf-2.0-dev:arm64 \
-            libpango1.0-dev:arm64 \
-            libgraphene-1.0-dev:arm64 \
-            libharfbuzz-dev:arm64 \
-            libvulkan-dev:arm64
-
-      - name: Install Rust via rustup (>=1.85)
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-          # Add ARM64 target if cross-compiling
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            $HOME/.cargo/bin/rustup target add aarch64-unknown-linux-gnu
-          fi
-
-          $HOME/.cargo/bin/rustc -V
-          $HOME/.cargo/bin/cargo -V
-
-      - name: Install cross-compilation tools
-        if: matrix.arch == 'arm64'
-        run: |
-          # Already installed in previous step; keep for safety in case of changes
-          apt-get install -y gcc-aarch64-linux-gnu || true
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install cargo-deb
-        run: |
-          $HOME/.cargo/bin/cargo install cargo-deb
+        run: cargo install cargo-deb
 
-      - name: Build with meson (for resources)
+      - name: Build resources with meson
         run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            # Set up cross-compilation environment for ARM64
-            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-            export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-            export PKG_CONFIG_ALLOW_CROSS=1
-            export PKG_CONFIG_PATH=""
-            export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
-            export CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu
-          fi
-          meson setup build-release --prefix=/usr -Dprofile=release
-          meson compile -C build-release
+          meson setup build --prefix=/usr -Dprofile=release
+          meson compile -C build
 
       - name: Build DEB package
-        run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            # Set up cross-compilation environment for ARM64
-            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-            export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-            export PKG_CONFIG_ALLOW_CROSS=1
-            # Ensure pkg-config resolves ARM64 .pc files from multiarch locations
-            export PKG_CONFIG_PATH=""
-            export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
-            $HOME/.cargo/bin/cargo deb --target=aarch64-unknown-linux-gnu
-          else
-            $HOME/.cargo/bin/cargo deb
-          fi
+        run: cargo deb
 
-      - name: Get version from tag
-        id: get_version
-        run: |
-          # Extract version from tag (e.g., v1.1.0 -> 1.1.0)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          # Find the actual deb file (might be in target/debian or target/aarch64-unknown-linux-gnu/debian)
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            DEB_FILE=$(ls target/aarch64-unknown-linux-gnu/debian/*.deb 2>/dev/null | xargs -n 1 basename || ls target/debian/*.deb | xargs -n 1 basename)
-            DEB_PATH=$(ls target/aarch64-unknown-linux-gnu/debian/*.deb 2>/dev/null || ls target/debian/*.deb)
-          else
-            DEB_FILE=$(ls target/debian/*.deb | xargs -n 1 basename)
-            DEB_PATH=$(ls target/debian/*.deb)
-          fi
-          echo "deb_file=$DEB_FILE" >> $GITHUB_OUTPUT
-          echo "deb_path=$DEB_PATH" >> $GITHUB_OUTPUT
-
-      - name: Upload deb to release
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.get_version.outputs.deb_path }}
-          asset_name: bootmate_${{ steps.get_version.outputs.version }}_${{ matrix.arch }}.deb
-          asset_content_type: application/vnd.debian.binary-package
-
-      - name: Upload deb artifact
+      - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
-          name: deb-package-${{ matrix.arch }}
-          path: target/**/debian/*.deb
+          name: deb-amd64
+          path: target/debian/*.deb
+
+  build-snap-amd64:
+    name: Build Snap (AMD64)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build snap
+        uses: snapcore/action-build@v1
+        id: build
+
+      - name: Upload Snap
+        uses: actions/upload-artifact@v4
+        with:
+          name: snap-amd64
+          path: ${{ steps.build.outputs.snap }}
