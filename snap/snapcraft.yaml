@@ -13,12 +13,20 @@ confinement: strict
 apps:
   bootmate:
     command: usr/local/bin/bootmate
-    extensions: [gnome]
     plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - gsettings
       - home
       - dot-config-autostart
       - system-autostart-read
       - desktop-applications-read
+    environment:
+      XDG_DATA_DIRS: $SNAP/usr/share:$SNAP/usr/local/share:$XDG_DATA_DIRS
+      GTK_USE_PORTAL: "1"
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
 
 plugs:
   dot-config-autostart:
@@ -56,10 +64,21 @@ parts:
       - libglib2.0-bin
       - gettext
       - desktop-file-utils
+    stage-packages:
+      - libgtk-4-1
+      - libadwaita-1-0
+      - libglib2.0-0
+      - libglib2.0-bin
+      - librsvg2-common
+      - gsettings-desktop-schemas
+      - libgdk-pixbuf-2.0-0
+      - libpango-1.0-0
+      - libcairo2
+      - libgraphene-1.0-0
     override-build: |
       set -eux
 
-      # Install Rust stable
+      # Install Rust
       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
       source $HOME/.cargo/env
 
