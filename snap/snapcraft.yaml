@@ -63,6 +63,7 @@ parts:
   bootmate:
     plugin: nil
     source: .
+    parse-info: [usr/share/applications/ch.srueegger.bootmate.desktop]
     build-packages:
       - curl
       - gcc
@@ -104,3 +105,8 @@ parts:
       meson setup build --prefix=/usr -Dprofile=release
       ninja -C build
       DESTDIR=$CRAFT_PART_INSTALL ninja -C build install
+
+      # Update icon cache
+      if [ -d "$CRAFT_PART_INSTALL/usr/share/icons/hicolor" ]; then
+        gtk-update-icon-cache -q "$CRAFT_PART_INSTALL/usr/share/icons/hicolor" || true
+      fi
