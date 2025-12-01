@@ -56,11 +56,8 @@ plugs:
 
 parts:
   bootmate:
-    plugin: meson
+    plugin: nil
     source: .
-    meson-parameters:
-      - --prefix=/usr/local
-      - -Dprofile=release
     build-packages:
       - curl
       - gcc
@@ -81,12 +78,24 @@ parts:
       - librsvg2-common
       - gsettings-desktop-schemas
     override-build: |
-      # Install Rust via rustup
-      if ! command -v rustc >/dev/null 2>&1; then
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-        source "$HOME/.cargo/env"
-      fi
-      export PATH="$HOME/.cargo/bin:$PATH"
+      set -eu
 
-      # Run meson build
-      craftctl default
+      # Install Rust stable via rustup
+      export CARGO_HOME=$CRAFT_PART_BUILD/cargo
+      export RUSTUP_HOME=$CRAFT_PART_BUILD/rustup
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal --no-modify-path
+      export PATH="$CARGO_HOME/bin:$PATH"
+
+      # Verify Rust installation
+      echo "Rust version:"
+      rustc --version
+      cargo --version
+
+      # Build with meson
+      cd $CRAFT_PART_SRC
+      meson setup $CRAFT_PART_BUILD --prefix=/usr/local -Dprofile=release
+      ninja -C $CRAFT_PART_BUILD
+      DESTDIR=$CRAFT_PART_INSTALL ninja -C $CRAFT_PART_BUILD install
+
+      # Cleanup Rust to save space
+      rm -rf $CARGO_HOME $RUSTUP_HOME
