@@ -7,32 +7,18 @@ description: |
   system's autostart entries. You can view all autostart applications,
   edit their properties, add startup parameters, or remove them entirely.
 
-  Perfect for managing which applications start automatically when you
-  log in to your GNOME session.
-
 grade: stable
 confinement: strict
-
-platforms:
-  amd64:
 
 apps:
   bootmate:
     command: usr/local/bin/bootmate
+    extensions: [gnome]
     plugs:
-      - desktop
-      - desktop-legacy
-      - wayland
-      - x11
-      - gsettings
       - home
       - dot-config-autostart
       - system-autostart-read
       - desktop-applications-read
-    environment:
-      XDG_DATA_DIRS: $SNAP/usr/share:$SNAP/usr/local/share:$XDG_DATA_DIRS
-      GTK_USE_PORTAL: "1"
-      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
 
 plugs:
   dot-config-autostart:
@@ -70,32 +56,14 @@ parts:
       - libglib2.0-bin
       - gettext
       - desktop-file-utils
-    stage-packages:
-      - libgtk-4-1
-      - libadwaita-1-0
-      - libglib2.0-0
-      - libglib2.0-bin
-      - librsvg2-common
-      - gsettings-desktop-schemas
     override-build: |
-      set -eu
+      set -eux
 
-      # Install Rust stable via rustup
-      export CARGO_HOME=$CRAFT_PART_BUILD/cargo
-      export RUSTUP_HOME=$CRAFT_PART_BUILD/rustup
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal --no-modify-path
-      export PATH="$CARGO_HOME/bin:$PATH"
+      # Install Rust stable
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+      source $HOME/.cargo/env
 
-      # Verify Rust installation
-      echo "Rust version:"
-      rustc --version
-      cargo --version
-
-      # Build with meson
-      cd $CRAFT_PART_SRC
-      meson setup $CRAFT_PART_BUILD --prefix=/usr/local -Dprofile=release
-      ninja -C $CRAFT_PART_BUILD
-      DESTDIR=$CRAFT_PART_INSTALL ninja -C $CRAFT_PART_BUILD install
-
-      # Cleanup Rust to save space
-      rm -rf $CARGO_HOME $RUSTUP_HOME
+      # Build
+      meson setup build --prefix=/usr/local -Dprofile=release
+      ninja -C build
+      DESTDIR=$CRAFT_PART_INSTALL ninja -C build install
