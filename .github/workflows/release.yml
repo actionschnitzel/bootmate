@@ -153,6 +153,7 @@ jobs:
       - name: Build Snap for ARM64
         run: |
           docker run --rm --platform linux/arm64 \
+            --privileged \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
             ubuntu:24.04 bash -c "
@@ -169,7 +170,10 @@ jobs:
                 libglib2.0-bin \
                 gettext \
                 desktop-file-utils \
-                snapd && \
+                snapd \
+                squashfs-tools && \
+              systemctl start snapd && \
+              sleep 5 && \
               snap install snapcraft --classic && \
               snapcraft pack --destructive-mode
             "
